@@ -3,13 +3,6 @@
     margin-right: 4px;
 }
 
-/*
-#terrainlayer-tools {
-    position: absolute;
-    width: auto;
-    text-align: center;
-}*/
-
 #controls ol.control-tools.sub-controls {
     flex-grow: 0;
     margin-right: 6px;
@@ -36,7 +29,7 @@
     margin: 0 0 8px;
     color: #BBB;
     text-align: center;
-    border: 0px;
+    border: 0;
     background: transparent;
     border-radius: 5px;
     cursor: pointer;
@@ -46,11 +39,7 @@
 #terrainlayer-tools.control-tools > li.control-tool.disabled:hover {
     box-shadow: 0 0 10px var(--color-shadow-dark);
 }
-/*
-#terrainlayer-tools .control-btn:hover {
-    color: #FFF;
-    box-shadow: 0 0 10px #ff6400;
-}*/
+
 #terrainlayer-tools .control-btn:disabled {
     color: var(--color-text-dark-secondary);
     box-shadow: none;
@@ -76,8 +65,8 @@
     cursor: default;
     position: relative;
 }
+
 #terrainlayer-tools #tl-defaultcost:hover {
-    box-shadow: none;
     border: 1px solid var(--color-border-dark);
     box-shadow: 0 0 10px var(--color-shadow-dark);
 }
@@ -88,30 +77,7 @@
     left: -5px;
     font-size: 14px;
 }
-/*
-.terrain-color input[type=color]::-webkit-color-swatch {
-    background-color: transparent !important;
-}*/
-/*
-#terrain-config input[type="range"] {
-    z-index: 2;
-}
 
-#terrain-config input[type="range"] + input[type="range"] {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    width: calc(100% - 58px);
-    -webkit-appearance: none;
-    z-index: 1;
-}
-
-#terrain-config input[type="range"] + input[type="range"]::-webkit-slider-runnable-track,
-#terrain-config input[type="range"] + input[type="range"]::-moz-range-track,
-#terrain-config input[type="range"] + input[type="range"]::-ms-track {
-    background: none;
-    color:transparent;
-}*/
 #terrain-hud .environment-list {
     visibility: hidden;
     position: absolute;
@@ -159,13 +125,11 @@
     display: block;
     width: 100%;
     height: 24px;
-    margin: 0;
-    margin-top: -1px;
+    margin: -1px 0 0;
     border-radius: 4px;
     border: 1px solid transparent;
-    padding: 0;
     opacity: 0.5;
-    padding-right: calc(100% - 24px);
+    padding: 0 calc(100% - 24px) 0 0;
 }
 
 #terrain-hud .environment-name {
@@ -178,7 +142,7 @@
     display: inline-block;
     pointer-events: none;
     position: absolute;
-    top: 0px;
+    top: 0;
     left: 24px;
     opacity: 0.6;
     color: #ccc;
@@ -194,7 +158,7 @@
 }
 
 #terrain-hud .environment-list .environment-container.active .environment-control {
-    filter: sepia(100%) saturate(2000%) hue-rotate( -50deg );
+    filter: sepia(100%) saturate(2000%) hue-rotate(-50deg);
 }
 
 #terrain-hud .environment-list .environment-container.active:hover {
@@ -207,7 +171,7 @@
 }
 
 #terrain-hud .environment-list .environment-container:hover .environment-name {
-    opacity:1;
+    opacity: 1;
 }
 
 .terrainheight-label {

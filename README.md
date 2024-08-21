@@ -1,12 +1,12 @@
 # Important Notice
-It is with a heavy heart that I have reached the difficult decision to part ways with Enhanced Terrain Layer.  At least for the time being.  Despite dedicating a substantial amount of time to make it compatible with v11, all my efforts encountered challenges presented by Foundry. Even when attempting to pivot the module's direction to replicate the Drawings layer, luck was not on my side. Unfortunately, v11 has restricted too many essential resources that this module relies upon, leaving me with limited options for making it work. I truly did my utmost to revive it, but it seems that my endeavors have been in vain.
+It is with a heavy heart that I have reached the difficult decision to part ways with Simple Terrain.  At least for the time being.  Despite dedicating a substantial amount of time to make it compatible with v11, all my efforts encountered challenges presented by Foundry. Even when attempting to pivot the module's direction to replicate the Drawings layer, luck was not on my side. Unfortunately, v11 has restricted too many essential resources that this module relies upon, leaving me with limited options for making it work. I truly did my utmost to revive it, but it seems that my endeavors have been in vain.
 
-Enhanced Terrain Layer holds a special place among my favorite modules, and it pains me to bid it farewell. However, given the incompatibility with what I aim to achieve, v11 leaves me with no other choice. While I hold a glimmer of hope that v12 might bring some positive changes, I cannot say I'm overly optimistic about it.
+Simple Terrain holds a special place among my favorite modules, and it pains me to bid it farewell. However, given the incompatibility with what I aim to achieve, v11 leaves me with no other choice. While I hold a glimmer of hope that v12 might bring some positive changes, I cannot say I'm overly optimistic about it.
 
 Should Terrain Layer emerge victorious in a future poll, I will gladly return and update the module for that release. Until then, I must bid goodnight to a beloved creation, knowing that I gave it my all.
 
 
-# Enhanced Terrain Layer
+# Simple Terrain
 Adds a Terrain Layer to Foundry that can be used by other modules to calculate difficult terrain.
 
 ## Installation
@@ -46,11 +46,11 @@ In the module settings, you can set whether to include live or dead tokens of ei
 
 ## Rulers and measuring distance
 
-Enhanced Terrain Layer only records difficult terrain, it doesn't do any measuring based on that information.  To get drag distances for Tokens I'd recommend using both Terrain Ruler and Drag Ruler.  Terrain Ruler will calculate the correct distance based on difficult terrain, and Drag Ruler provides a more visual representation of drag distances.
+Simple Terrain only records difficult terrain, it doesn't do any measuring based on that information.  To get drag distances for Tokens I'd recommend using both Terrain Ruler and Drag Ruler.  Terrain Ruler will calculate the correct distance based on difficult terrain, and Drag Ruler provides a more visual representation of drag distances.
 
 ## Coding
 ### Requesting terrain cost for coordinates on the map
-For those who are developing Rulers based on the Enhanced Terrain Layer, to get access to the difficulty cost of terrain grid you call the cost function.
+For those who are developing Rulers based on the Simple Terrain, to get access to the difficulty cost of terrain grid you call the cost function.
 `canvas.terrain.cost(pts, options);`
 pts can be a single object {x: 0, y:0}, or an array of point objects.
 options {elevation: 0, reduce:[], tokenId: token.id, token:token} lets the terrain layer know certain things about what you're asking for.
@@ -67,10 +67,10 @@ A list of Terrain Environments can be found by calling `canvas.terrain.getEnviro
 if you need to find the terrain at a certain grid co-ordinate you can call `canvas.terrain.terrainFromGrid(x, y);` or `canvas.terrain.terrainFromPixels(x, y);`.  This is useful if you want to determine if the terrain in question is water, and use the swim speed instead of walking speed to calculate speed.
 
 ### Integrating game system rules
-Other modules or game systems systems can indicate to Enhanced Terrain Layer how a given token should interact with the terrain present in a scene and how to handle stacked terrain. That way it's possible to integrate the rules of a given game system into Enhanced Terrain Layer. Enhanced Terrain Layer offers an API to which modules and game systems can register to provide the implementation of the respective rules to Enhanced Terrain Layer. Registering with the API works as follows:
+Other modules or game systems systems can indicate to Simple Terrain how a given token should interact with the terrain present in a scene and how to handle stacked terrain. That way it's possible to integrate the rules of a given game system into Simple Terrain. Simple Terrain offers an API to which modules and game systems can register to provide the implementation of the respective rules to Simple Terrain. Registering with the API works as follows:
 
 ```javascript
-Hooks.once("enhancedTerrainLayer.ready", (RuleProvider) => {
+Hooks.once("SimpleTerrain.ready", (RuleProvider) => {
   class ExampleGameSystemRuleProvider extends RuleProvider {
     calculateCombinedCost(terrain, options) {
       let cost;
@@ -78,7 +78,7 @@ Hooks.once("enhancedTerrainLayer.ready", (RuleProvider) => {
       return cost;
     }
   }
-  enhancedTerrainLayer.registerModule("my-module-id", ExampleGameSystemRuleProvider);
+  SimpleTerrain.registerModule("my-module-id", ExampleGameSystemRuleProvider);
 });
 ```
 
