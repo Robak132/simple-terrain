@@ -3,12 +3,10 @@ import {TerrainConfig} from "./terrainconfig.js";
 import {TerrainHUD} from "./terrainhud.js";
 import {TerrainDocument} from "./terraindocument.js";
 import {PolygonTerrainInfo, TemplateTerrainInfo, TokenTerrainInfo} from "./terraininfo.js";
-import {setting} from "../terrain-main.js";
-import {calculateCombinedCost} from "../js/api.js";
+import {setting} from "./utility.js";
+import {calculateCombinedCost} from "./api.js";
 
-export let environments = (key) => {
-  return canvas.terrain.getEnvironments();
-};
+export let environments = () => canvas.terrain.getEnvironments();
 
 export class TerrainLayer extends PlaceablesLayer {
   constructor() {
@@ -48,7 +46,6 @@ export class TerrainLayer extends PlaceablesLayer {
       rotatableObjects: false,
       objectClass: Terrain,
       sortActiveTop: true,
-      //sheetClass: TerrainConfig,
       sheetClasses: {
         base: {
           "simple-terrain.TerrainSheet": {

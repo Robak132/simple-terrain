@@ -1,4 +1,4 @@
-import {makeid, setting, getflag} from "../terrain-main.js";
+import {makeID, setting, getFlag} from "./utility.js";
 import {Terrain} from "./terrain.js";
 
 export class BaseTerrain extends foundry.abstract.Document {
@@ -123,14 +123,14 @@ export class TerrainDocument extends CanvasDocumentMixin(BaseTerrain) {
     return (
       this.drawcolor ||
       setting("environment-color")[this.environment] ||
-      getflag(canvas.scene, "defaultcolor") ||
+      getFlag(canvas.scene, "defaultcolor") ||
       setting("environment-color")["_default"] ||
       "#FFFFFF"
     );
   }
 
   get alpha() {
-    return this.opacity ?? getflag(canvas.scene, "opacity") ?? setting("opacity") ?? 1;
+    return this.opacity ?? getFlag(canvas.scene, "opacity") ?? setting("opacity") ?? 1;
   }
 
   get rotation() {
@@ -210,7 +210,7 @@ export class TerrainDocument extends CanvasDocumentMixin(BaseTerrain) {
       if (terrain instanceof TerrainDocument) terrain = terrain.toObject();
       //update this object
       // mergeObject(terrainDoc.data, data);
-      terrain._id = terrain._id || makeid();
+      terrain._id = terrain._id || makeID();
 
       //don't create a terrain that has less than 3 points
       if (
@@ -289,7 +289,7 @@ export class TerrainDocument extends CanvasDocumentMixin(BaseTerrain) {
 
       //update the data and save it to the scene
       if (game.user.isGM) {
-        let objectdata = duplicate(getflag(document.parent, `terrain${document.id}`));
+        let objectdata = duplicate(getFlag(document.parent, `terrain${document.id}`));
         mergeObject(objectdata, changes);
         let key = `flags.simple-terrain.terrain${document.id}`;
         await document.parent.update({[key]: objectdata}, {diff: false});

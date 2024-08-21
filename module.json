@@ -48,6 +48,18 @@
   "styles": [
     "css/terrainlayer.css"
   ],
+  "relationships": {
+    "requires": [
+      {
+        "id": "lib-wrapper",
+        "type": "module",
+        "compatibility": {
+          "minimum": "1.0.0.0",
+          "verified": "1.12.6.0"
+        }
+      }
+    ]
+  },
   "url": "https://github.com/ironmonk88/simple-terrain",
   "download": "https://github.com/ironmonk88/simple-terrain/archive/10.09.zip",
   "manifest": "https://github.com/ironmonk88/simple-terrain/releases/latest/download/module.json",

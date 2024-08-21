@@ -1,4 +1,4 @@
-import {i18n, setting} from "../terrain-main.js";
+import {i18n, setting} from "./utility.js";
 
 export class TerrainColor extends FormApplication {
   constructor(object, options) {

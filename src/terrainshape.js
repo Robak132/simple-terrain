@@ -1,4 +1,4 @@
-import {setting} from "../terrain-main.js";
+import {setting} from "./utility.js";
 
 export class TerrainShape extends DrawingShape {
   refresh() {

@@ -1,4 +1,4 @@
-import {TerrainColor} from "../classes/terraincolor.js";
+import {TerrainColor} from "./terraincolor.js";
 import {updateRuleProviderVariable} from "./api.js";
 
 export const registerSettings = function () {
@@ -28,7 +28,7 @@ export const registerSettings = function () {
   game.settings.registerMenu(modulename, "edit-colors", {
     name: "Edit Colors",
     label: "Edit Colors",
-    hint: "Edit default color, environment colrs, and obstacle colors",
+    hint: "Edit default color, environment colors, and obstacle colors",
     icon: "fas fa-palette",
     restricted: true,
     type: TerrainColor,
@@ -153,7 +153,6 @@ export const registerSettings = function () {
     default: 4,
     type: Number
   });
-
   game.settings.register(modulename, "rule-provider", {
     name: "SimpleTerrain.rule-provider.name",
     hint: "SimpleTerrain.rule-provider.hint",
@@ -164,21 +163,18 @@ export const registerSettings = function () {
     choices: {},
     onChange: updateRuleProviderVariable
   });
-
   game.settings.register(modulename, "showterrain", {
     scope: "world",
     config: false,
     default: false,
     type: Boolean
   });
-
   game.settings.register(modulename, "conversion", {
     scope: "world",
     config: false,
     default: false,
     type: Boolean
   });
-
   game.settings.register(modulename, "environment-color", {
     scope: "world",
     config: false,

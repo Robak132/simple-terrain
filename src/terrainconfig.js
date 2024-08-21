@@ -1,6 +1,5 @@
-import {TerrainLayer} from "./terrainlayer.js";
 import {TerrainDocument} from "./terraindocument.js";
-import {log, setting, i18n, getflag} from "../terrain-main.js";
+import {setting, i18n, getFlag} from "./utility.js";
 
 export class TerrainConfig extends DocumentSheet {
   /** @override */
@@ -75,7 +74,7 @@ export class TerrainConfig extends DocumentSheet {
     let data = expandObject(formData);
     data.multiple = Math.clamped(data.multiple, setting("minimum-cost"), setting("maximum-cost"));
 
-    let defaultOpacity = getflag(canvas.scene, "opacity") ?? setting("opacity") ?? 1;
+    let defaultOpacity = getFlag(canvas.scene, "opacity") ?? setting("opacity") ?? 1;
     if (data.opacity === defaultOpacity) data.opacity = null;
 
     if (this.object.id) {

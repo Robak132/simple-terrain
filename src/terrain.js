@@ -1,4 +1,4 @@
-import {setting} from "../terrain-main.js";
+import {setting} from "./utility.js";
 import {TerrainShape} from "./terrainshape.js";
 
 export class Terrain extends PlaceableObject {

@@ -1,5 +1,5 @@
 import {TerrainLayer} from "./terrainlayer.js";
-import {log, setting, i18n} from "../terrain-main.js";
+import {i18n} from "./utility.js";
 
 export class TerrainHUD extends BasePlaceableHUD {
   _showEnvironments = false;
@@ -24,16 +24,8 @@ export class TerrainHUD extends BasePlaceableHUD {
     let _environments = canvas.terrain.getEnvironments().map((obj) => {
       obj.text = i18n(obj.text);
       obj.active = this.object.document.environment === obj.id;
-
       return obj;
     });
-
-    /*
-        let _obstacles = canvas.terrain.getObstacles().map(obj => {
-            obj.text = i18n(obj.text);
-            obj.active = (setting('use-obstacles') ? this.object.data.obstacle === obj.id : (this.object.data.environment || this.object.data.obstacle) === obj.id);
-            return obj;
-        });*/
 
     const data = super.getData();
     return mergeObject(data, {
@@ -56,13 +48,6 @@ export class TerrainHUD extends BasePlaceableHUD {
       .find(".environment-list")
       .on("click", ".environment-container", this._onToggleEnvironment.bind(this))
       .on("contextmenu", ".environment-container", (event) => this._onToggleEnvironment(event));
-
-    /*
-        this.frame.handle.off("mouseover").off("mouseout").off("mousedown")
-            .on("mouseover", this._onHandleHoverIn.bind(this))
-            .on("mouseout", this._onHandleHoverOut.bind(this))
-            .on("mousedown", this._onHandleMouseDown.bind(this));
-        this.frame.handle.interactive = true;*/
   }
 
   _onClickEnvironments(event) {
@@ -102,51 +87,16 @@ export class TerrainHUD extends BasePlaceableHUD {
     });
   }
 
-  /*
-     * async _onToggleVisibility(event) {
-    event.preventDefault();
-
-    // Toggle the visible state
-    const isHidden = this.object.data.hidden;
-    const updates = this.layer.controlled.map(o => {
-      return {_id: o.id, hidden: !isHidden};
-    });
-
-    // Update all objects
-    await this.layer.updateMany(updates);
-    event.currentTarget.classList.toggle("active", !isHidden);
-  }
-  */
-
   _onHandleClick(increase, event) {
     const updates = this.layer.controlled.map((o) => {
       let mult = TerrainLayer.alterMultiple(o.document.multiple, increase);
-      //let idx = TerrainLayer.multipleOptions.indexOf(mult);
-      //idx = Math.clamped((increase ? idx + 1 : idx - 1), 0, TerrainLayer.multipleOptions.length - 1);
-      return {_id: o.id, multiple: mult}; //TerrainLayer.multipleOptions[idx] };
+      return {_id: o.id, multiple: mult};
     });
 
     let that = this;
     return canvas.scene.updateEmbeddedDocuments("Terrain", updates).then(() => {
       $(".terrain-cost", that.element).html(`${TerrainLayer.multipleText(that.object.document.multiple)}`);
     });
-
-    /*
-        this.layer.updateMany(updates).then(() => {
-            for (let terrain of this.layer.controlled) {
-                let data = updates.find(u => { return u._id === terrain.data._id });
-                terrain.update(data, { save: false }).then(() => {
-                    $('.terrain-cost', this.element).html(String.fromCharCode(215) + this.object.multiple);
-                });
-            }
-        });*/
-
-    /*
-        let mult = this.object.data.multiple;
-        let idx = TerrainLayer.multipleOptions.indexOf(mult);
-        idx = Math.clamped((increase ? idx + 1 : idx - 1), 0, TerrainLayer.multipleOptions.length - 1);
-        this.object.update({ multiple: TerrainLayer.multipleOptions[idx] });
-        this.object.refresh();*/
   }
 
   async _onToggleVisibility(event) {
@@ -183,17 +133,6 @@ export class TerrainHUD extends BasePlaceableHUD {
   setPosition() {
     $("#hud").append(this.element);
     let {x, y, width, height} = this.object.hitArea;
-    /*
-        const c = 70;
-        const p = 0;
-        const position = {
-            width: width + (c * 2), // + (p * 2),
-            height: height + (p * 2),
-            left: x + this.object.document.x - c - p,
-            top: y + this.object.document.y - p
-        };
-        this.element.css(position);
-        */
     const c = 70;
     const p = -10;
     const position = {

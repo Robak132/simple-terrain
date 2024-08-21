@@ -1,5 +1,5 @@
-import {RuleProvider} from "../classes/ruleprovider.js";
-import {i18n} from "../terrain-main.js";
+import {RuleProvider} from "./ruleprovider.js";
+import {i18n} from "./utility.js";
 
 const availableRuleProviders = {};
 let currentRuleProvider = undefined;
