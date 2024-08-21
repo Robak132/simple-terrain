@@ -2,7 +2,7 @@
     <div class="col left" style="justify-content: center;">
         <div class="attribute control-icon">
             <i class="fas fa-mountain" style="font-size: var(--font-size-12);"></i>
-            <span class="terrain-cost" title="{{localize "EnhancedTerrainLayer.TerrainCost"}}">{{{text}}}</span>
+            <span class="terrain-cost" title="{{localize "SimpleTerrain.TerrainCost"}}">{{{text}}}</span>
         </div>
 
         <div class="control-icon environments">
@@ -16,11 +16,11 @@
 
         <div class="attribute control-icon">
             <i class="fas fa-angle-up"></i>
-            <div class="terrain-elevation" title="{{localize "EnhancedTerrainLayer.TerrainElevation"}}">{{elevation}}</div>
+            <div class="terrain-elevation" title="{{localize "SimpleTerrain.TerrainElevation"}}">{{elevation}}</div>
         </div>
         <div class="attribute control-icon">
             <i class="fas fa-arrows-alt-v"></i>
-            <div class="terrain-depth" title="{{localize "EnhancedTerrainLayer.TerrainDepth"}}">{{depth}}</div>
+            <div class="terrain-depth" title="{{localize "SimpleTerrain.TerrainDepth"}}">{{depth}}</div>
         </div>
     </div>
 
@@ -30,7 +30,7 @@
     <div class="col right" style="justify-content: center;">
         {{#if isGM}}
         <div class="control-icon {{visibilityClass}}" data-action="visibility">
-            <img src="{{icons.visibility}}" width="36" height="36" title="{{localize "EnhancedTerrainLayer.visibility"}}">
+            <img src="{{icons.visibility}}" width="36" height="36" title="{{localize "SimpleTerrain.visibility"}}">
         </div>
 
         <div class="control-icon {{lockedClass}}" data-action="locked">
@@ -38,11 +38,11 @@
         </div>
 
         <div class="control-icon inc-multiple">
-            <img src="{{icons.up}}" width="36" height="36" title="{{localize "EnhancedTerrainLayer.IncreaseCost"}}" />
+            <img src="{{icons.up}}" width="36" height="36" title="{{localize "SimpleTerrain.IncreaseCost"}}" />
         </div>
 
         <div class="control-icon dec-multiple">
-            <img src="{{icons.down}}" width="36" height="36" title="{{localize "EnhancedTerrainLayer.DecreaseCost"}}" />
+            <img src="{{icons.down}}" width="36" height="36" title="{{localize "SimpleTerrain.DecreaseCost"}}" />
         </div>
         {{/if}}
     </div>

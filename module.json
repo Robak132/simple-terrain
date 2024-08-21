@@ -1,16 +1,16 @@
 {
-  "title": "Enhanced Terrain Layer",
+  "title": "Simple Terrain",
   "description": "A base module that adds a Terrain Layer to Foundry.  Used as a library for Rulers and other modules",
   "version": "10.09",
   "authors": [
     {
       "name": "IronMonk",
       "discord": "ironmonk88#4075",
-	  "flags": {
-		  "github": "ironmonk88",
-		  "patreon": "ironmonk",
-		  "ko-fi": "ironmonk88"
-	  }
+      "flags": {
+        "github": "ironmonk88",
+        "patreon": "ironmonk",
+        "ko-fi": "ironmonk88"
+      }
     }
   ],
   "socket": true,
@@ -43,23 +43,21 @@
   ],
   "esmodules": [
     "terrain-main.js",
-    "js/controls.js",
     "js/settings.js"
   ],
   "styles": [
     "css/terrainlayer.css"
   ],
-  "url": "https://github.com/ironmonk88/enhanced-terrain-layer",
-  "download": "https://github.com/ironmonk88/enhanced-terrain-layer/archive/10.09.zip",
-  "manifest": "https://github.com/ironmonk88/enhanced-terrain-layer/releases/latest/download/module.json",
-  "bugs": "https://github.com/ironmonk88/enhanced-terrain-layer/issues",
+  "url": "https://github.com/ironmonk88/simple-terrain",
+  "download": "https://github.com/ironmonk88/simple-terrain/archive/10.09.zip",
+  "manifest": "https://github.com/ironmonk88/simple-terrain/releases/latest/download/module.json",
+  "bugs": "https://github.com/ironmonk88/simple-terrain/issues",
   "allowBugReporter": true,
-  "id": "enhanced-terrain-layer",
+  "id": "simple-terrain",
   "compatibility": {
-    "minimum": "10",
-    "verified": "10"
+    "minimum": "11",
+    "verified": "11",
+    "maximum": "11"
   },
-  "name": "enhanced-terrain-layer",
-  "minimumCoreVersion": "10",
-  "compatibleCoreVersion": "10"
+  "name": "simple-terrain"
 }

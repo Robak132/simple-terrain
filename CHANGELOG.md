@@ -100,7 +100,7 @@ Added the option to set a terrain's individual opacity.
 
 Added the option to get a list of all available terrains.  Thank you Stäbchenfisch the code looks amazing.  Technically nothing should change for the interface, but this improvement can help Rulers be more effecient.
 
-Fixed an issue with how Enhanced Terrain Layer was determining if a token was dead.
+Fixed an issue with how Simple Terrain was determining if a token was dead.
 
 Added the option for Rulers to pass in a function to determine if a Token is considered dead or not.  This will allow system specific ruler to change how tokens are considered "dead".
 
@@ -148,7 +148,7 @@ Allowed tokens causing difficult terrain and dead tokens causing difficult terra
 
 Allow terrain height to use decimal numbers.
 
-Fixed issue where Enhanced Terrain layer was resetting the scroll position after a change.
+Fixed issue where Simple Terrain was resetting the scroll position after a change.
 
 # Version 1.0.36
 
@@ -242,7 +242,7 @@ Changed terraintype to terrain height to make it a little more transparent as to
 Updated the cost function to be more effecient
 
 # Version 1.0.24
-Fixing an issue with Enhanced Terrain Layer not finding a place to put the additional controls on an item.
+Fixing an issue with Simple Terrain not finding a place to put the additional controls on an item.
 
 Adding Urban environment, and Furniture obstacle.
 
@@ -255,7 +255,7 @@ Adding a side menu to change the environment type from the terrain HUD.
 
 Added integration with spells, so you can set the difficulty, environment, and terrain type of the spell and it will translate to the measured template produced.  Only works for DnD5e right now, but if it gets added to more systems then I'll update it.
 
-Fixed the image path names so that it wasn't hard coded to the enhanced terrain layer folder.  And overriding the environment will now let you override the image used.
+Fixed the image path names so that it wasn't hard coded to the Simple Terrain folder.  And overriding the environment will now let you override the image used.
 
 # Version 1.0.21
 Added icons for the different environments
@@ -270,7 +270,7 @@ Added option to combine obstacles with the environment, or to use them independa
 # Version 1.0.18
 Add setting to not show terrain when dragging a token
 
-The original Terrain Layer does not play nice with the Enhanced Terrain Layer.  Added code to make sure they can exist at the same time.
+The original Terrain Layer does not play nice with the Simple Terrain.  Added code to make sure they can exist at the same time.
 
 Fixed issue with opacity
 
