@@ -1,4 +1,4 @@
-import {i18n, setting} from "./utility.js";
+import {i18n, setting} from "../simple-terrain.js";
 
 export class TerrainColor extends FormApplication {
   constructor(object, options) {
@@ -9,7 +9,7 @@ export class TerrainColor extends FormApplication {
     return mergeObject(super.defaultOptions, {
       id: "terraincolor",
       title: i18n("SimpleTerrain.TerrainColor"),
-      template: "./modules/simple-terrain/templates/terrain-color.html",
+      template: "./modules/simple-terrain/templates/terrain-color.hbs",
       width: 400,
       height: 400,
       popOut: true
@@ -36,7 +36,7 @@ export class TerrainColor extends FormApplication {
     };
   }
 
-  saveChanges(ev) {
+  saveChanges() {
     let colors = setting("environment-color");
     let updateColor = function (id, value) {
       if (value === "") {
@@ -51,10 +51,6 @@ export class TerrainColor extends FormApplication {
     for (let env of canvas.terrain.getEnvironments()) {
       updateColor(env.id, $("#" + env.id, this.element).val());
     }
-    /*
-        for (let obs of canvas.terrain.getObstacles()) {
-            updateColor(obs.id, $('#' + obs.id, this.element).val());
-        }*/
 
     game.settings.set("simple-terrain", "environment-color", colors).then(() => {
       canvas.terrain.refresh(true);
@@ -70,7 +66,6 @@ export class TerrainColor extends FormApplication {
 
   activateListeners(html) {
     super.activateListeners(html);
-
     $('button[name="reset"]', html).click(this.resetSetting.bind(this));
     $('button[name="submit"]', html).click(this.saveChanges.bind(this));
   }

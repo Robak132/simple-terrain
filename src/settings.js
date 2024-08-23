@@ -34,21 +34,6 @@ export const registerSettings = function () {
     type: TerrainColor,
     onClick: () => {}
   });
-
-  game.settings.register(modulename, "opacity", {
-    name: "SimpleTerrain.opacity.name",
-    hint: "SimpleTerrain.opacity.hint",
-    scope: "world",
-    config: true,
-    default: 1,
-    type: Number,
-    range: {
-      min: 0,
-      max: 1,
-      step: 0.1
-    },
-    onChange: debouncedRefresh
-  });
   game.settings.register(modulename, "draw-border", {
     name: "SimpleTerrain.draw-border.name",
     hint: "SimpleTerrain.draw-border.hint",
@@ -80,6 +65,23 @@ export const registerSettings = function () {
   game.settings.register(modulename, "show-icon", {
     name: "SimpleTerrain.show-icon.name",
     hint: "SimpleTerrain.show-icon.hint",
+    scope: "world",
+    config: true,
+    default: false,
+    type: Boolean,
+    onChange: debouncedRefresh
+  });
+  game.settings.register(modulename, "show-on-drag", {
+    name: "SimpleTerrain.show-on-drag.name",
+    hint: "SimpleTerrain.show-on-drag.hint",
+    scope: "world",
+    config: true,
+    default: true,
+    type: Boolean
+  });
+  game.settings.register(modulename, "only-show-active", {
+    name: "SimpleTerrain.only-show-active.name",
+    hint: "SimpleTerrain.only-show-active.hint",
     scope: "world",
     config: true,
     default: false,
@@ -145,6 +147,12 @@ export const registerSettings = function () {
     type: String,
     choices: {},
     onChange: updateRuleProviderVariable
+  });
+  game.settings.register(modulename, "showterrain", {
+    scope: "world",
+    config: false,
+    default: false,
+    type: Boolean
   });
   game.settings.register(modulename, "conversion", {
     scope: "world",

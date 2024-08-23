@@ -1,50 +1,40 @@
-import {Terrain} from "./terrain.js";
-import {TerrainConfig} from "./terrainconfig.js";
-import {TerrainHUD} from "./terrainhud.js";
-import {TerrainDocument} from "./terraindocument.js";
-import {PolygonTerrainInfo, TemplateTerrainInfo, TokenTerrainInfo} from "./terraininfo.js";
-import {setting} from "./utility.js";
 import {calculateCombinedCost} from "./api.js";
+import {setting} from "../simple-terrain.js";
 
 export class TerrainLayer extends PlaceablesLayer {
   constructor() {
     super();
-    this.defaultmultiple = 2;
     this._setting = {};
   }
 
-  static documentName = "Terrain";
+  //Compatibility
+  refreshVisibility() {}
 
-  /** @override */
-  static get layerOptions() {
-    return mergeObject(super.layerOptions, {
-      name: "terrain",
-      zIndex: 5,
-      canDragCreate: game.user.isGM,
-      canDelete: game.user.isGM,
-      controllableObjects: game.user.isGM,
-      rotatableObjects: false,
-      objectClass: Terrain,
-      sortActiveTop: true,
-      sheetClasses: {
-        base: {
-          "simple-terrain.TerrainSheet": {
-            id: "simple-terrain.TerrainSheet",
-            label: "Enhanced Terrain Sheet",
-            default: true,
-            cls: TerrainConfig
-          }
-        }
-      }
-    });
+  //Compatibility
+  get showOnDrag() {
+    return true;
   }
 
-  getDocuments() {
-    return canvas.scene.terrain || null;
-  }
-
-  get(objectId) {
-    return canvas.scene.terrain?.get(objectId)?.object || undefined;
+  static get defaults() {
+    const sceneFlags = canvas.scene.flags["simple-terrain"];
+    let sceneMult = sceneFlags?.multiple;
+    let sceneElev = sceneFlags?.elevation;
+    let sceneDepth = sceneFlags?.depth;
+    let sceneEnv = sceneFlags?.environment;
+    return {
+      locked: false,
+      hidden: false,
+      multiple:
+        sceneMult == null || sceneMult === ""
+          ? 1
+          : Math.clamped(parseInt(sceneMult), setting("minimum-cost"), setting("maximum-cost")),
+      elevation: sceneElev == null || sceneElev === "" ? 0 : sceneElev,
+      depth: sceneDepth == null || sceneDepth === "" ? 0 : sceneDepth,
+      environment: sceneEnv || null,
+      obstacle: null,
+      shape: {},
+      bezierFactor: 0
+    };
   }
 
   get gridPrecision() {
@@ -53,10 +43,6 @@ export class TerrainLayer extends PlaceablesLayer {
     else if (size >= 64) return 8;
     else if (size >= 32) return 4;
     else if (size >= 16) return 2;
-  }
-
-  static get multipleOptions() {
-    return [0.5, 1, 2, 3, 4];
   }
 
   getEnvironments() {
@@ -166,23 +152,6 @@ export class TerrainLayer extends PlaceablesLayer {
     return environments;
   }
 
-  static multipleText(multiple) {
-    return parseFloat(multiple) === 0.5 ? "&frac12;" : multiple;
-  }
-
-  static alterMultiple(multiple, increase = true) {
-    let step = 1;
-    if (multiple < 1 || (multiple === 1 && !increase)) step = 0.5;
-
-    let newmult = multiple + step * (increase ? 1 : -1);
-    if (newmult >= 1) newmult = parseInt(newmult);
-    else newmult = Math.round(newmult * 2) / 2;
-
-    newmult = Math.clamped(newmult, setting("minimum-cost"), setting("maximum-cost"));
-
-    return newmult;
-  }
-
   elevation(pts, options = {}) {
     pts = pts instanceof Array ? pts : [pts];
 
@@ -227,48 +196,29 @@ export class TerrainLayer extends PlaceablesLayer {
     const elevation = this.calcElevationFromOptions(options);
 
     const terrainInfos = options.list || [];
-    for (const terrain of this.placeables) {
-      if (elevation < terrain.document.bottom || elevation > terrain.document.top) continue;
-      if (terrain.document.multiple === 1) continue;
-      if (options.ignore?.includes(terrain.document.environment)) continue;
+    for (const terrain of [...canvas.drawings.placeables, ...canvas.templates.placeables]) {
+      const terrainFlag = getProperty(terrain.document, "flags.simple-terrain");
+      if (!terrainFlag) continue;
+
+      const terrainCost = terrainFlag.multiple ?? 1;
+      let terrainBottom = terrainFlag.elevation ?? TerrainLayer.defaults.elevation;
+      let terrainTop = terrainBottom + (terrainFlag.depth ?? TerrainLayer.defaults.depth);
+      if (terrainTop < terrainBottom) [terrainBottom, terrainTop] = [terrainTop, terrainBottom];
+
+      const environment = terrainFlag.environment || "";
+      if (elevation < terrainBottom || elevation > terrainTop) continue;
+      if (terrainCost === 1) continue;
+      if (options.ignore?.includes(environment)) continue;
       let reducers = options.reduce?.filter(
         (e) => e.id === terrain.document.environment || (useObstacles && e.id === terrain.document.obstacle)
       );
-      terrainInfos.push(new PolygonTerrainInfo(terrain, reducers));
-    }
-    return terrainInfos;
-  }
-
-  listMeasuredTerrain(options = {}) {
-    const useObstacles = setting("use-obstacles");
-    const elevation = this.calcElevationFromOptions(options);
-
-    const terrainInfos = options.list || [];
-    for (const template of canvas.templates.placeables) {
-      const terrainFlag = getProperty(template.document, "flags.simple-terrain");
-      if (!terrainFlag) continue;
-      const terraincost = terrainFlag.multiple ?? 1;
-      let terrainbottom = terrainFlag.elevation ?? Terrain.defaults.elevation;
-      let terraintop = terrainbottom + (terrainFlag.depth ?? Terrain.defaults.depth);
-      if (terraintop < terrainbottom) {
-        let temp = terrainbottom;
-        terrainbottom = terraintop;
-        terraintop = temp;
-      }
-
-      const environment = terrainFlag.environment || "";
-      const obstacle = terrainFlag.obstacle || "";
-      if (elevation < terrainbottom || elevation > terraintop) continue;
-      if (terraincost === 1) continue;
-      if (options.ignore?.includes(environment)) continue;
-      let reducers = options.reduce?.filter((e) => e.id === environment || (useObstacles && e.id === obstacle));
-      terrainInfos.push(new TemplateTerrainInfo(template, reducers));
+      terrainInfos.push({object: terrain.document, reducers});
     }
     return terrainInfos;
   }
 
   listTokenTerrain(options = {}) {
-    const terrainInfos = options.list || [];
+    const terrainInfos = [];
 
     let isDead =
       options.isDead ||
@@ -302,7 +252,7 @@ export class TerrainLayer extends PlaceablesLayer {
           (token.document.disposition !== CONST.TOKEN_DISPOSITIONS.FRIENDLY && checkValue === "hostile")
         ) {
           let reducers = options.reduce?.filter((e) => e.id === "token");
-          terrainInfos.push(new TokenTerrainInfo(token, reducers));
+          terrainInfos.push({object: token.document, reducers});
         }
       }
     }
@@ -310,11 +260,74 @@ export class TerrainLayer extends PlaceablesLayer {
     return terrainInfos;
   }
 
+  getCost(terrain) {
+    let terrainCost = terrain instanceof TokenDocument ? 2 : terrain.flags["simple-terrain"].multiple;
+    if (!terrain.reducers) return terrainCost;
+    for (const reduce of terrain.reducers) {
+      let value = parseFloat(reduce.value);
+
+      if (typeof reduce.value === "string" && (reduce.value.startsWith("+") || reduce.value.startsWith("-"))) {
+        value = terrainCost + value;
+        if (reduce.stop) {
+          if (reduce.value.startsWith("+")) value = Math.min(value, reduce.stop);
+          else value = Math.max(value, reduce.stop);
+        }
+      }
+      terrainCost = value;
+    }
+    return terrainCost;
+  }
+
   listAllTerrain(options = {}) {
-    return this.listTokenTerrain({
-      list: this.listMeasuredTerrain({list: this.listTerrain(options), ...options}),
-      ...options
+    let terrainList = [...this.listTokenTerrain(options), ...this.listTerrain(options)].map((a) => {
+      return {
+        reducers: a.reducers,
+        shape: this.getShapeFromDoc(a.object),
+        object: a.object
+      };
     });
+    console.log("Terrain: ", terrainList);
+    return terrainList;
+  }
+
+  getShapeFromDoc(document) {
+    if (document instanceof MeasuredTemplateDocument) {
+      return document.object.shape;
+    } else if (document instanceof TokenDocument) {
+      if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS) {
+        const hw = (document.width * canvas.dimensions.size) / 2;
+        const hh = (document.height * canvas.dimensions.size) / 2;
+
+        return new PIXI.Circle(hw, hh, Math.max(hw, hh));
+      } else {
+        const left = 0;
+        const top = 0;
+        const width = document.width * canvas.dimensions.size;
+        const height = document.height * canvas.dimensions.size;
+
+        return new PIXI.Rectangle(left, top, width, height);
+      }
+    }
+
+    let {x, y, shape} = document;
+    let result;
+    switch (shape.type) {
+      case Drawing.SHAPE_TYPES.RECTANGLE:
+        result = new PIXI.Rectangle(0, 0, shape.width, shape.height);
+        break;
+      case Drawing.SHAPE_TYPES.ELLIPSE:
+        result = new PIXI.Ellipse(
+          shape.width / 2,
+          shape.height / 2,
+          Math.max(Math.abs(shape.width / 2), 0),
+          Math.max(Math.abs(shape.height / 2), 0)
+        );
+        break;
+      case Drawing.SHAPE_TYPES.POLYGON:
+        result = new PIXI.Polygon(shape.points);
+        break;
+    }
+    return result;
   }
 
   costWithTerrain(pts, terrain, options = {}) {
@@ -336,8 +349,13 @@ export class TerrainLayer extends PlaceablesLayer {
       const tx = gx + hx;
       const ty = gy + hy;
 
-      terrain = terrain.filter((t) => t.shape.contains(tx - t.object.x, ty - t.object.y));
-      const cost = calculateCombinedCost(terrain, options);
+      let result = [];
+      for (let t of terrain.filter((t2) => t2.shape.contains(tx - t2.object.x, ty - t2.object.y))) {
+        let doc = t.object;
+        doc.setFlag("simple-terrain", "cost", this.getCost(doc));
+        result.push(doc);
+      }
+      const cost = calculateCombinedCost(result, options);
       costs.push(cost);
     }
 
@@ -359,7 +377,7 @@ export class TerrainLayer extends PlaceablesLayer {
     const hx = x + canvas.dimensions.size / 2;
     const hy = y + canvas.dimensions.size / 2;
 
-    let terrains = this.placeables.filter((t) => {
+    let terrains = this.listAllTerrain().filter((t) => {
       const testX = hx - t.x;
       const testY = hy - t.y;
       return t.shape.contains(testX, testY);
@@ -371,351 +389,5 @@ export class TerrainLayer extends PlaceablesLayer {
     }
 
     return terrains;
-  }
-
-  /**
-   * Tile objects on this layer utilize the TileHUD
-   * @type {TerrainHUD}
-   */
-  get hud() {
-    return canvas.hud.terrain;
-  }
-
-  async draw() {
-    const d = canvas.dimensions;
-    this.width = d.width;
-    this.height = d.height;
-    this.hitArea = d.rect;
-    this.zIndex = this.constructor.layerOptions.zIndex;
-
-    // Create objects container which can be sorted
-    this.objects = this.addChild(new PIXI.Container());
-    this.objects.sortableChildren = true;
-    this.objects.visible = false;
-
-    // Create preview container which is always above objects
-    this.preview = this.addChild(new PIXI.Container());
-
-    const documents = this.getDocuments() || [];
-    const promises = documents.map((doc) => {
-      doc._destroyed = false;
-      return doc.object?.draw();
-    });
-
-    // Wait for all objects to draw
-    this.visible = true;
-    await Promise.all(promises);
-    return this;
-  }
-
-  async toggle(show, emit = false) {
-    if (show === undefined) show = !this.showterrain;
-    this.showterrain = show;
-    if (game.user.isGM && emit)
-      game.socket.emit("module.simple-terrain", {action: "toggle", arguments: [this._showterrain]});
-  }
-
-  _getNewTerrainData(origin) {
-    const tool = game.activeTool;
-
-    const data = mergeObject(Terrain.defaults, {
-      x: origin.x,
-      y: origin.y,
-      author: game.user.id
-    });
-
-    // Mandatory additions
-    delete data._id;
-    if (tool !== "freehand") {
-      origin = canvas.grid.getSnappedPosition(origin.x, origin.y, this.gridPrecision);
-      data.x = origin.x;
-      data.y = origin.y;
-    }
-
-    switch (tool) {
-      case "rect":
-        data.shape.type = Drawing.SHAPE_TYPES.RECTANGLE;
-        data.shape.width = 1;
-        data.shape.height = 1;
-        break;
-      case "ellipse":
-        data.shape.type = Drawing.SHAPE_TYPES.ELLIPSE;
-        data.shape.width = 1;
-        data.shape.height = 1;
-        break;
-      case "freehand":
-        data.shape.type = Drawing.SHAPE_TYPES.POLYGON;
-        data.shape.points = [0, 0];
-        data.bezierFactor = data.bezierFactor ?? 0.5;
-        break;
-      case "polygon":
-        data.shape.type = Drawing.SHAPE_TYPES.POLYGON;
-        data.shape.points = [0, 0];
-        data.bezierFactor = 0;
-        break;
-    }
-
-    return TerrainDocument.cleanData(data);
-  }
-
-  /** @override */
-  _onClickLeft(event) {
-    const {preview, createState, originalEvent} = event.data;
-
-    // Continue polygon point placement
-    if (createState >= 1 && preview.isPolygon) {
-      let point = event.data.destination;
-      const snap = !originalEvent.shiftKey;
-      preview._addPoint(point, {snap, round: true});
-      preview._chain = true; // Note that we are now in chain mode
-      return preview.refresh();
-    }
-
-    // Standard left-click handling
-    super._onClickLeft(event);
-  }
-
-  /** @override */
-  _onClickLeft2(event) {
-    const {createState, preview} = event.data;
-
-    // Conclude polygon placement with double-click
-    if (createState >= 1 && preview.isPolygon) {
-      event.data.createState = 2;
-      return this._onDragLeftDrop(event);
-    } else if (createState === 0 || createState === undefined) {
-      //add a default square
-      let gW = canvas.grid.grid.w;
-      let gH = canvas.grid.grid.h;
-
-      //let pos = canvas.grid.getSnappedPosition(event.data.origin.x, event.data.origin.y, 1);
-      let [tX, tY] = canvas.grid.grid.getGridPositionFromPixels(event.data.origin.x, event.data.origin.y);
-      let [gX, gY] = canvas.grid.grid.getPixelsFromGridPosition(tX, tY);
-
-      let points = [];
-      if (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS || canvas.grid.type === CONST.GRID_TYPES.SQUARE)
-        points = [0, 0, gW, 0, gW, gH, 0, gH, 0, 0];
-      else if (canvas.grid.type === CONST.GRID_TYPES.HEXEVENR || canvas.grid.type === CONST.GRID_TYPES.HEXODDR)
-        points = [gW / 2, 0, gW, gH * 0.25, gW, gH * 0.75, gW / 2, gH, 0, gH * 0.75, 0, gH * 0.25, gW / 2, 0];
-      else if (canvas.grid.type === CONST.GRID_TYPES.HEXEVENQ || canvas.grid.type === CONST.GRID_TYPES.HEXODDQ)
-        points = [0, gH / 2, gW * 0.25, 0, gW * 0.75, 0, gW, gH / 2, gW * 0.75, gH, gW * 0.25, gH, 0, gH / 2];
-
-      const data = mergeObject(Terrain.defaults, {
-        x: gX - (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS ? gW / 2 : 0),
-        y: gY - (canvas.grid.type === CONST.GRID_TYPES.GRIDLESS ? gH / 2 : 0),
-        shape: {
-          points: points,
-          width: gW,
-          height: gH
-        }
-      });
-
-      //const document = new TerrainDocument(data, { parent: canvas.scene });
-
-      this.createTerrain(data);
-    }
-
-    // Standard double-click handling
-    super._onClickLeft2(event);
-  }
-
-  /** @override */
-  async _onDragLeftStart(event) {
-    await super._onDragLeftStart(event);
-    const data = this._getNewTerrainData(event.data.origin);
-
-    const document = new TerrainDocument(data, {parent: canvas.scene});
-    const terrain = new Terrain(document);
-    event.data.preview = this.preview.addChild(terrain);
-    return terrain.draw();
-  }
-
-  /** @override */
-  _onDragLeftMove(event) {
-    const {preview, createState} = event.data;
-    if (!preview || preview._destroyed) return;
-    if (preview.parent === null) {
-      // In theory this should never happen, but rarely does
-      this.preview.addChild(preview);
-    }
-    if (createState >= 1) {
-      preview._onMouseDraw(event);
-      const isFreehand = game.activeTool === "freehand";
-      if (!preview.isPolygon || isFreehand) event.data.createState = 2;
-    }
-  }
-
-  /**
-   * Handling of mouse-up events which conclude a new object creation after dragging
-   * @private
-   */
-  async _onDragLeftDrop(event) {
-    const {createState, preview} = event.data;
-
-    // Successful drawing completion
-    if (createState === 2) {
-      const distance = Math.hypot(preview.shape.width, preview.shape.height);
-      const minDistance = distance >= canvas.dimensions.size / this.gridPrecision;
-      const completePolygon = preview.isPolygon && preview.document.shape.points.length > 4;
-
-      // Create a completed terrain
-      if (minDistance || completePolygon) {
-        event.data.createState = 0;
-        const data = preview.document.toObject(false);
-
-        // Adjust the final data
-        preview._chain = false;
-        //const createData = this.constructor.placeableClass.normalizeShape(data);
-        let terrain = await this.createTerrain(data);
-
-        const o = terrain.object;
-        o._creating = true;
-        if (game.activeTool !== "freehand") o.control({isNew: true});
-      }
-
-      // Cancel the preview
-      return this._onDragLeftCancel(event);
-    }
-
-    // In-progress polygon
-    if (createState === 1) {
-      event.data.originalEvent.preventDefault();
-      if (preview._chain) return;
-      return this._onClickLeft(event);
-    }
-
-    // Incomplete drawing
-    return this._onDragLeftCancel(event);
-  }
-
-  /** @override */
-  _onDragLeftCancel(event) {
-    const preview = this.preview.children?.[0] || null;
-    if (preview?._chain) {
-      preview._removePoint();
-      preview.refresh();
-      if (preview.document.shape.points.length) return event.preventDefault();
-    }
-    super._onDragLeftCancel(event);
-  }
-
-  /** @override */
-  _onClickRight(event) {
-    const preview = this.preview.children?.[0] || null;
-    if (preview) return (canvas.mouseInteractionManager._dragRight = false);
-    super._onClickRight(event);
-  }
-
-  async pasteObjects(position, {hidden = false, snap = true} = {}) {
-    if (!this._copy.length) return [];
-    const cls = this.constructor.placeableClass;
-    const d = canvas.dimensions;
-
-    // Adjust the pasted position for half a grid space
-    if (snap) {
-      position.x -= canvas.dimensions.size / 2;
-      position.y -= canvas.dimensions.size / 2;
-    }
-
-    // Get the left-most object in the set
-    this._copy.sort((a, b) => a.data.x - b.data.x);
-    let {x, y} = this._copy[0].data;
-
-    // Iterate over objects
-    const toCreate = [];
-    for (let c of this._copy) {
-      let data = c.document.toObject(false);
-      delete data._id;
-
-      // Constrain the destination position
-      let dest = {x: position.x + (data.x - x), y: position.y + (data.y - y)};
-      dest.x = Math.clamped(dest.x, 0, d.width - 1);
-      dest.y = Math.clamped(dest.y, 0, d.height - 1);
-      if (snap) dest = canvas.grid.getSnappedPosition(dest.x, dest.y);
-
-      let document = new TerrainDocument(
-        Terrain.normalizeShape(
-          mergeObject(data, {
-            x: dest.x,
-            y: dest.y,
-            hidden: data.hidden || hidden
-          })
-        ),
-        {parent: canvas.scene}
-      );
-      toCreate.push(document.data);
-    }
-
-    // Call paste hooks
-    Hooks.call(`paste${cls.name}`, this._copy, toCreate);
-
-    let created = await canvas.scene.createEmbeddedDocuments(this.constructor.documentName, toCreate);
-    ui.notifications.info(`Pasted data for ${toCreate.length} ${this.constructor.documentName} objects.`);
-
-    /*
-        for (let terrain of created) {
-            if (terrain.document._object === undefined) {
-                terrain.document._object = new Terrain(terrain.document);
-                canvas.terrain.objects.addChild(terrain.document._object);
-                terrain.document._object.draw();
-            }
-        }*/
-
-    return created;
-  }
-
-  createTerrain(data) {
-    //data = mergeObject(Terrain.defaults, data);
-    const cls = getDocumentClass("Terrain");
-    const createData = this.constructor.placeableClass.normalizeShape(data);
-
-    // Create the object
-    return cls.create(createData, {parent: canvas.scene}); /*.then(d => {
-            d._creating = true;
-            if (d.document._object === undefined) {
-                d.document._object = new Terrain(d.document);
-                canvas.terrain.objects.addChild(d.document._object);
-                d.document._object.draw();
-            }
-            return d;
-        });*/
-  }
-
-  _createTerrain(data) {
-    //let toCreate = data.map(d => new TerrainData(d));
-    TerrainDocument.createDocuments(data, {parent: canvas.scene});
-
-    /*
-        let toCreate = data.map(d => {
-            const document = new TerrainDocument(d, { parent: canvas.scene });
-            return document.data;
-        });
-
-        TerrainDocument.createDocuments();
-
-        let userId = game.user._id;
-        let object = canvas.terrain.createObject(data);
-        object._onCreate(options, userId);
-        canvas["#scene"].terrain.push(data);*/
-  }
-
-  _updateTerrain(data) {
-    TerrainDocument.updateDocuments(data, {parent: canvas.scene});
-  }
-
-  _deleteTerrain(ids) {
-    TerrainDocument.deleteDocuments(ids, {parent: canvas.scene});
-  }
-
-  refresh() {
-    for (let terrain of this.placeables) {
-      terrain.refresh();
-    }
-  }
-
-  redraw() {
-    for (let terrain of this.placeables) {
-      terrain.draw();
-    }
   }
 }

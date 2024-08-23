@@ -1,20 +1,61 @@
 import {registerSettings} from "./src/settings.js";
 import {initApi, registerModule, registerSystem} from "./src/api.js";
 import {RuleProvider} from "./src/ruleprovider.js";
-import {addControlsv9, setting, setupScene} from "./src/utility.js";
 import {TerrainLayer} from "./src/terrainlayer.js";
 
-function registerKeybindings() {
-  game.keybindings.register("simple-terrain", "toggle-view", {
-    name: "SimpleTerrain.ToggleView",
-    restricted: true,
-    editable: [{key: "KeyT", modifiers: [KeyboardManager.MODIFIER_KEYS?.ALT]}],
-    onDown: () => {
-      if (game.user.isGM) {
-        canvas.terrain.toggle(null, true);
+export let i18n = (key) => {
+  return game.i18n.localize(key);
+};
+
+export let setting = (key) => {
+  if (canvas.terrain._setting[key] !== undefined) return canvas.terrain._setting[key];
+  else return game.settings.get("simple-terrain", key);
+};
+
+async function addControls(app, dest) {
+  let obs = {};
+  let env = canvas.terrain.getEnvironments().reduce(function (map, obj) {
+    (obj.obstacle === true ? obs : map)[obj.id] = i18n(obj.text);
+    return map;
+  }, {});
+
+  let flags = duplicate(app.object.flags["simple-terrain"] || {});
+  let data = {
+    data: flags,
+    defaults: {
+      multiple: 1,
+      elevation: 0,
+      depth: 0,
+      drawColor:
+        setting("environment-color")[flags?.environment] || setting("environment-color")["_default"] || "#FFFFFF"
+    },
+    environments: env,
+    obstacles: obs,
+    full: full,
+    useObstacles: setting("use-obstacles")
+  };
+  if (data.data.multiple !== "" && data.data.multiple != null) {
+    data.data.multiple = Math.clamped(parseInt(data.data.multiple), setting("minimum-cost"), setting("maximum-cost"));
+  }
+  console.log(data);
+  dest.append(await renderTemplate("modules/simple-terrain/templates/terrain-config.hbs", data));
+  $('select[name="flags.simple-terrain.environment"], select[name="flags.simple-terrain.obstacle"]', dest).on(
+    "change",
+    () => {
+      let env = $("select[name='flags.simple-terrain.environment']");
+      let envSel = $("select[name='flags.simple-terrain.environment'] option:selected");
+      let obs = $("select[name='flags.simple-terrain.obstacle']");
+
+      if (env.val() === "" && obs.val() !== "") {
+        env.val(obs.val());
+        obs.val("");
+      }
+      if (envSel.parent().attr("data-type") === "obstacle" && obs.val() !== "") {
+        if ($(this).attr("name") === "obstacle") env.val(obs.val());
+        obs.val("");
       }
     }
-  });
+  );
 }
 
 Hooks.on("init", async () => {
@@ -23,7 +64,6 @@ Hooks.on("init", async () => {
   });
 
   registerSettings();
-  registerKeybindings();
 
   let cp = CONFIG.MeasuredTemplate.objectClass.prototype._computeShape;
   CONFIG.MeasuredTemplate.objectClass.prototype._computeShape = function () {
@@ -36,22 +76,16 @@ Hooks.on("init", async () => {
     return res;
   };
 
-  let initializeDocuments = async function (wrapped, ...args) {
-    wrapped(...args);
-    for (let scene of game.scenes) {
-      await setupScene(scene);
-    }
-  };
-
-  libWrapper.register("simple-terrain", "Game.prototype.initializeDocuments", initializeDocuments, "WRAPPER");
-
-  let getControlButtons = function (wrapped, ...args) {
-    let controls = wrapped.call(this, ...args);
-    controls.findSplice((c) => c.name === "terrain" && c.flags === undefined);
-    return controls;
-  };
-
-  libWrapper.register("simple-terrain", "SceneControls.prototype._getControlButtons", getControlButtons, "WRAPPER");
+  libWrapper.register(
+    "simple-terrain",
+    "SceneControls.prototype._getControlButtons",
+    (wrapped, ...args) => {
+      let controls = wrapped.call(this, ...args);
+      controls.findSplice((c) => c.name === "terrain" && c.flags == null);
+      return controls;
+    },
+    "WRAPPER"
+  );
 
   initApi();
 
@@ -60,7 +94,6 @@ Hooks.on("init", async () => {
 
 Hooks.on("ready", () => {
   if (canvas.terrain) {
-    canvas.terrain._setting["opacity"] = setting("opacity");
     canvas.terrain._setting["draw-border"] = setting("draw-border");
     canvas.terrain._setting["terrain-image"] = setting("terrain-image");
     canvas.terrain._setting["show-text"] = setting("show-text");
@@ -104,7 +137,7 @@ Hooks.on("renderMeasuredTemplateConfig", async (app, html) => {
       );
   }
 
-  await addControlsv9(app, tab);
+  await addControls(app, tab);
 
   app.options.tabs = [
     {
@@ -134,7 +167,7 @@ Hooks.on("renderDrawingConfig", async (app, html) => {
     .append($("<a>").addClass("item").attr("data-tab", "terrain").html('<i class="fas fa-mountain"></i> Terrain'));
   let tab = $("<div>").addClass("tab").attr("data-tab", "terrain").insertAfter($('div[data-tab="text"]', html));
 
-  await addControlsv9(app, tab);
+  await addControls(app, tab);
 });
 
 Hooks.on("renderSceneConfig", async (app, html) => {
@@ -142,7 +175,7 @@ Hooks.on("renderSceneConfig", async (app, html) => {
     $("<a>").addClass("item").attr("data-tab", "terrain").html('<i class="fas fa-mountain"></i> Terrain')
   );
   let tab = $("<div>").addClass("tab").attr("data-tab", "terrain").insertAfter($('div[data-tab="ambience"]', html));
-  await addControlsv9(app, tab, {full: true});
+  await addControls(app, tab);
 });
 
 Hooks.on("canvasInit", () => {
