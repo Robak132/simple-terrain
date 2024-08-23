@@ -1,10 +1,3 @@
-import {Terrain} from "./terrain.js";
-import {TerrainDocument} from "./terraindocument.js";
-
-export let log = (...args) => console.log("Simple Terrain | ", ...args);
-
-export let error = (...args) => console.error("Simple Terrain | ", ...args);
-
 export let i18n = (key) => {
   return game.i18n.localize(key);
 };
@@ -22,18 +15,7 @@ export let getFlag = (obj, key) => {
   return getProperty(obj, `flags.simple-terrain.${key}`);
 };
 
-export function registerKeybindings() {
-  game.keybindings.register("simple-terrain", "toggle-view", {
-    name: "SimpleTerrain.ToggleView",
-    restricted: true,
-    editable: [{key: "KeyT", modifiers: [KeyboardManager.MODIFIER_KEYS?.ALT]}],
-    onDown: () => {
-      if (game.user.isGM) {
-        canvas.terrain.toggle(null, true);
-      }
-    }
-  });
-}
+export let environments = () => canvas.terrain.getEnvironments();
 
 export function makeID() {
   let result = "";
@@ -52,7 +34,7 @@ export async function addTerrainConfig(app, html, tab) {
     return map;
   }, {});
 
-  let flags = duplicate(app.object.flags["enhanced-terrain-layer"] || {});
+  let flags = duplicate(app.object.flags["simple-terrain"] || {});
   let defaults = {};
 
   let data = {
@@ -62,7 +44,7 @@ export async function addTerrainConfig(app, html, tab) {
   };
   data.data.cost = data.data.cost === "" || data.data.cost === undefined ? 1 : parseInt(data.data.cost);
 
-  let temp = await renderTemplate("modules/enhanced-terrain-layer/templates/terrain-config.html", data);
+  let temp = await renderTemplate("modules/simple-terrain/templates/terrain-config.html", data);
 
   tab.append(temp);
 
@@ -78,20 +60,20 @@ export async function addTerrainConfig(app, html, tab) {
     let environment = html.find("form.enhanced-terrain-config").find('[name="environment"]').val() || undefined;
 
     let newFlags = {active, cost, environment, elevation, depth, magical};
-    if (deepEqual(newFlags, app.object.flags["enhanced-terrain-layer"])) {
+    if (deepEqual(newFlags, app.object.flags["simple-terrain"])) {
       return;
     }
 
     let env = environments().find((a) => a.id === environment);
 
     let data = {
-      "flags.enhanced-terrain-layer": newFlags
+      "flags.simple-terrain": newFlags
     };
     if (active) {
       data["texture"] = env?.icon;
       data["text"] = env ? `${i18n(env.text)} (x${cost})` : `x${cost}`;
     }
-    await app.object.update({"flags.-=enhanced-terrain-layer": null});
+    await app.object.update({"flags.-=simple-terrain": null});
     await app.object.update(data);
   });
 }

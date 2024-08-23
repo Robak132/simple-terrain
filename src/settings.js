@@ -86,23 +86,6 @@ export const registerSettings = function () {
     type: Boolean,
     onChange: debouncedRefresh
   });
-  game.settings.register(modulename, "show-on-drag", {
-    name: "SimpleTerrain.show-on-drag.name",
-    hint: "SimpleTerrain.show-on-drag.hint",
-    scope: "world",
-    config: true,
-    default: true,
-    type: Boolean
-  });
-  game.settings.register(modulename, "only-show-active", {
-    name: "SimpleTerrain.only-show-active.name",
-    hint: "SimpleTerrain.only-show-active.hint",
-    scope: "world",
-    config: true,
-    default: false,
-    type: Boolean,
-    onChange: debouncedRefresh
-  });
   game.settings.register(modulename, "tokens-cause-difficult", {
     name: "SimpleTerrain.tokens-cause-difficult.name",
     hint: "SimpleTerrain.tokens-cause-difficult.hint",
@@ -162,12 +145,6 @@ export const registerSettings = function () {
     type: String,
     choices: {},
     onChange: updateRuleProviderVariable
-  });
-  game.settings.register(modulename, "showterrain", {
-    scope: "world",
-    config: false,
-    default: false,
-    type: Boolean
   });
   game.settings.register(modulename, "conversion", {
     scope: "world",

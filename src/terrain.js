@@ -52,12 +52,8 @@ export class Terrain extends PlaceableObject {
    */
   _fixedPoints = foundry.utils.deepClone(this.document.shape.points);
 
-  /* -------------------------------------------- */
-
   /** @inheritdoc */
   static embeddedName = "Terrain";
-
-  /* -------------------------------------------- */
 
   /**
    * The rate at which points are sampled (in milliseconds) during a freehand drawing workflow
@@ -71,17 +67,11 @@ export class Terrain extends PlaceableObject {
    */
   static SHAPE_TYPES = foundry.data.ShapeData.TYPES;
 
-  /* -------------------------------------------- */
-  /*  Properties                                  */
-  /* -------------------------------------------- */
-
   /** @override */
   get bounds() {
     const {x, y, shape} = this.document;
     return new PIXI.Rectangle(x, y, shape.width, shape.height).normalize();
   }
-
-  /* -------------------------------------------- */
 
   /** @override */
   get center() {
@@ -134,8 +124,6 @@ export class Terrain extends PlaceableObject {
     //this.overlay.y = parseInt(y / f);// - (s / 5.2);
   }
 
-  /* -------------------------------------------- */
-
   /**
    * A Boolean flag for whether the Drawing utilizes a tiled texture background?
    * @type {boolean}
@@ -143,8 +131,6 @@ export class Terrain extends PlaceableObject {
   get isTiled() {
     return true;
   }
-
-  /* -------------------------------------------- */
 
   /**
    * A Boolean flag for whether the Drawing is a Polygon type (either linear or freehand)?
@@ -154,8 +140,6 @@ export class Terrain extends PlaceableObject {
     return this.type === Drawing.SHAPE_TYPES.POLYGON;
   }
 
-  /* -------------------------------------------- */
-
   /**
    * Does the Drawing have text that is displayed?
    * @type {boolean}
@@ -163,8 +147,6 @@ export class Terrain extends PlaceableObject {
   get hasText() {
     return this.true;
   }
-
-  /* -------------------------------------------- */
 
   /**
    * The shape type that this Drawing represents. A value in Drawing.SHAPE_TYPES.
@@ -174,8 +156,6 @@ export class Terrain extends PlaceableObject {
   get type() {
     return this.document.shape.type;
   }
-
-  /* -------------------------------------------- */
 
   /** @inheritDoc */
   _destroy(options) {
@@ -190,19 +170,9 @@ export class Terrain extends PlaceableObject {
     if (this.isPreview) this.texture = this._original.texture?.clone();
     else this.texture = texture ? await loadTexture(texture, {fallback: "icons/svg/hazard.svg"}) : null;
 
-    //this.document.updateEnvironment();
-
-    // Create the primary group drawing container
-    //this.container = canvas.primary.addTerrain(this); //this.addChild(this.#drawTerrain());
-    //this.container.removeChildren();
-
     this.shape = canvas.primary.addTerrain(this); //this.container.addChild(this.#drawTerrain());
 
-    // Control Border
     this.frame = this.addChild(this.#drawFrame());
-
-    //this.overlay = this.addChild(new PIXI.Graphics());
-    //this.overlay.anchor.set(0.5, 0.5);
 
     // Terrain text
     this.text = this.addChild(this.#drawText());
@@ -210,8 +180,6 @@ export class Terrain extends PlaceableObject {
     // Terrain icon
     this.icon = this.addChild(this.#drawIcon());
 
-    // Enable Interactivity, if this is a true Terrain
-    //if (this.id) this.activateListeners();
     return this;
   }
 
@@ -221,8 +189,6 @@ export class Terrain extends PlaceableObject {
     shape.object = this;
     return shape;
   }
-
-  /* -------------------------------------------- */
 
   /**
    * Create elements for the Terrain border and handles
@@ -409,55 +375,12 @@ export class Terrain extends PlaceableObject {
 
     if (ui.controls.activeControl === "terrain") return true;
 
-    if (hidden && (!game.user.isGM || setting("only-show-active"))) return false;
-
-    if (!this.layer.showterrain && !(this.layer.showOnDrag && this.layer._tokenDrag)) return false;
+    if (hidden && !game.user.isGM) return false;
 
     const point = this.center;
     const tolerance = canvas.grid.size;
     return canvas.effects.visibility.testVisibility(point, {tolerance, object: this});
   }
-
-  /*
-    get multiple() {
-        return this.document.multiple ?? Terrain.defaults.multiple;
-    }
-
-    get elevation() {
-        return this.document.elevation ?? Terrain.defaults.elevation;
-    }
-
-    get depth() {
-        return this.document.depth ?? 0;
-    }
-
-    get top() {
-        return this.elevation + this.depth;
-    }
-
-    get bottom() {
-        return this.elevation;
-    }
-
-    get color() {
-        return this.document.drawcolor || setting('environment-color')[this.environment?.id] || this.environment?.color || getflag(canvas.scene, 'defaultcolor') || setting('environment-color')['_default'] || "#FFFFFF";
-    }
-
-    get opacity() {
-        return this.document.opacity ?? getflag(canvas.scene, 'opacity') ?? setting('opacity') ?? 1;
-    }
-    */
-
-  /*
-    get environment() {
-        return this.document.environment;
-    }*/
-
-  /*
-    get obstacle() {
-        return this.document.obstacle;
-    }
-    */
 
   contains(x, y) {
     if (!(x < 0 || y < 0 || x > this.document.width || y > this.document.height)) {
@@ -471,146 +394,6 @@ export class Terrain extends PlaceableObject {
       return 1;
     } else return this.document.multiple;
   }
-
-  /**
-   * Create the components of the terrain element, the terrain container, the drawn shape, and the overlay text
-   */
-  /*
-    _createTerrain() {
-
-        // Terrain container
-        this.terrain = this.addChild(new PIXI.Container());
-
-        // Terrain Shape
-        this.drawing = this.terrain.addChild(new PIXI.Graphics());
-
-        // Overlay Text
-        this.overlay = this.terrain.addChild(new PIXI.Graphics());
-        this.text = this.overlay.addChild(this._createText());
-        this._createIcon();
-        this._positionOverlay();
-    }
-    */
-
-  /* -------------------------------------------- */
-  /*
-    _createIcon() {
-        if (this.icon && !this.icon._destroyed) {
-            this.icon.destroy();
-            this.icon = null;
-        }
-
-        if (this.environment?.icon === undefined)
-            return;
-
-        this.icon = this.overlay.addChild(new PIXI.Container());
-
-        let s = canvas.dimensions.size;
-        const size = Math.max(Math.round(s / 2.5), 5);
-
-        let sc = colorStringToHex(this.color);
-
-        this.icon.border = this.icon.addChild(new PIXI.Graphics());
-        this.icon.border.clear().lineStyle(3, 0x000000).drawRoundedRect(0, 0, size, size, 4).beginFill(0x000000, 0.5).lineStyle(2, sc).drawRoundedRect(0, 0, size, size, 4).endFill();
-
-        this.icon.background = this.icon.addChild(new PIXI.Sprite.from(this.environment?.icon));
-        this.icon.background.x = this.icon.background.y = 1;
-        this.icon.background.width = this.icon.background.height = size - 2;
-    }
-    */
-
-  /*
-    _refresh() {
-        if (this._destroyed || this.drawing?._destroyed || this.drawing === undefined) return;
-
-        this.drawing.clear();
-
-        let s = canvas.dimensions.size;
-
-        // Outer Stroke
-        //const colors = CONFIG.Canvas.dispositionColors;
-        let sc = Color.from(this.color); //this.document.hidden ? colorStringToHex("#C0C0C0") :
-        let lStyle = new PIXI.LineStyle();
-        mergeObject(lStyle, { width: s / 20, color: sc, alpha: (setting('draw-border') ? 1 : 0), cap: PIXI.LINE_CAP.ROUND, join: PIXI.LINE_JOIN.ROUND, visible: true });
-        this.drawing.lineStyle(lStyle);
-
-        let drawAlpha = (ui.controls.activeControl === 'terrain' ? 1.0 : this.opacity);
-
-        // Fill Color or Texture
-        if (this.texture && sc !=='transparent') {
-            let sW = (canvas.dimensions.size / (this.texture.width * (setting('terrain-image') === 'diagonal' ? 2 : 1)));
-            let sH = (canvas.dimensions.size / (this.texture.height * (setting('terrain-image') === 'diagonal' ? 2 : 1)));
-            this.drawing.beginTextureFill({
-                texture: this.texture,
-                color: sc,
-                alpha: drawAlpha,
-                matrix: new PIXI.Matrix().scale(sW, sH)
-            });
-        }
-
-        // Draw polygon
-        let points = this.document.points || [];
-        if (points.length >= 2) {
-            if (points.length === 2) this.drawing.endFill();
-            this.shape = new PIXI.Polygon(points.deepFlatten());
-        }
-
-        if (this.shape && sc !=='transparent') {
-            if (this.document.hidden) {
-                this.drawDashedPolygon.call(this.drawing, points, 0, 0, 0, 1, 5, 0);
-                lStyle.width = 0;
-                this.drawing.lineStyle(lStyle);
-            }
-            this.drawing.drawShape(this.shape);
-        }
-
-        // Conclude fills
-        this.drawing.lineStyle(0x000000, 0.0).closePath();
-        this.drawing.endFill();
-        this.drawing.alpha = drawAlpha;
-
-        let showicon = setting('show-icon') && this.icon && !this.icon._destroyed;
-
-        this.text.visible = setting('show-text') && this.multiple !==1;
-        this.text.x = (showicon ? -this.text.width - 2 : -(this.text.width / 2));
-        this.text.y = -(this.text.height / 2);
-        if (this.icon && !this.icon._destroyed) {
-            this.icon.visible = setting('show-icon');
-            this.icon.x = (setting('show-text') ? 2 : -(this.icon.width / 2));
-            this.icon.y = -(this.icon.height / 2);
-        }
-
-        const size = Math.max(Math.round(s / 2.5), 5);
-        //if(this.icon && icons)
-        //    this.icon.border.lineStyle(3, 0x000000).drawRoundedRect(0, 0, size, size, 4).lineStyle(2, sc).drawRoundedRect(0, 0, size, size, 4);
-
-        this.overlay.visible = this.id && !this._original;
-        this.overlay.alpha = drawAlpha;
-
-        // Determine drawing bounds and update the frame
-        const bounds = this.terrain.getLocalBounds();
-        if (this.id && this.controlled) this._refreshFrame(bounds);
-        else this.frame.visible = false;
-
-        // Toggle visibility
-        this.position.set(this.document.x, this.document.y);
-        this.terrain.hitArea = bounds;
-        this.alpha = 1;
-        this.visible = !this.document.hidden || (game.user.isGM && (ui.controls.activeControl === 'terrain' || !setting('only-show-active')));
-
-        if (this.visible && game.modules.get("levels")?.active && canvas.tokens.controlled[0]) {
-            const token = canvas.tokens.controlled[0];
-            if (token.data.elevation > this.bottom || token.data.elevation < this.top)
-                this.visible = false;
-        }
-
-        return this;
-    }
-    */
-
-  /* -------------------------------------------- */
-
-  /* -------------------------------------------- */
 
   /**
    * Add a new polygon point to the terrain, ensuring it differs from the last one
@@ -637,8 +420,6 @@ export class Terrain extends PlaceableObject {
     }
   }
 
-  /* -------------------------------------------- */
-
   /**
    * Remove the last fixed point from the polygon
    * @private
@@ -647,10 +428,6 @@ export class Terrain extends PlaceableObject {
     this._fixedPoints.splice(-2);
     this.document.shape.updateSource({points: this._fixedPoints});
   }
-
-  /* -------------------------------------------- */
-  /*  Database Operations                         */
-  /* -------------------------------------------- */
 
   /** @override */
   _onUpdate(changed, options, userId) {
@@ -671,10 +448,6 @@ export class Terrain extends PlaceableObject {
     //if (this._sheet && this._sheet.rendered) this.sheet.render();
   }
 
-  /* -------------------------------------------- */
-  /*  Interactivity                               */
-  /* -------------------------------------------- */
-
   /** @override */
   _canControl(user, event) {
     if (this._creating) {
@@ -692,17 +465,11 @@ export class Terrain extends PlaceableObject {
     return this.controlled;
   }
 
-  /* -------------------------------------------- */
-
   /** @override */
   _canConfigure(user, event) {
     if (!this.controlled) return false;
     return super._canConfigure(user);
   }
-
-  /* -------------------------------------------- */
-  /*  Event Listeners and Handlers                */
-  /* -------------------------------------------- */
 
   /** @override */
   activateListeners() {
@@ -716,8 +483,6 @@ export class Terrain extends PlaceableObject {
       .on("mousedown", this._onHandleMouseDown.bind(this));
     this.frame.handle.interactive = true;
   }
-
-  /* -------------------------------------------- */
 
   /**
    * Handle mouse movement which modifies the dimensions of the drawn shape
@@ -772,25 +537,17 @@ export class Terrain extends PlaceableObject {
     this.refresh();
   }
 
-  /* -------------------------------------------- */
-  /*  Interactivity                               */
-  /* -------------------------------------------- */
-
   /** @override */
   _onDragLeftStart(event) {
     if (this._dragHandle) return this._onHandleDragStart(event);
     return super._onDragLeftStart(event);
   }
 
-  /* -------------------------------------------- */
-
   /** @override */
   _onDragLeftMove(event) {
     if (this._dragHandle) return this._onHandleDragMove(event);
     return super._onDragLeftMove(event);
   }
-
-  /* -------------------------------------------- */
 
   /** @override */
   _onDragLeftDrop(event) {
@@ -823,8 +580,6 @@ export class Terrain extends PlaceableObject {
     });
   }
 
-  /* -------------------------------------------- */
-
   /** @override */
   _onDragLeftCancel(event) {
     if (this._dragHandle) return this._onHandleDragCancel(event);
@@ -838,17 +593,11 @@ export class Terrain extends PlaceableObject {
     o.shape.alpha = o.alpha;
   }
 
-  /* -------------------------------------------- */
-
   /** @inheritDoc */
   _onDragEnd() {
     super._onDragEnd();
     if (this.isPreview) this._original.shape.alpha = 1.0;
   }
-
-  /* -------------------------------------------- */
-  /*  Resize Handling                             */
-  /* -------------------------------------------- */
 
   /**
    * Handle mouse-over event on a control handle
@@ -860,8 +609,6 @@ export class Terrain extends PlaceableObject {
     handle.scale.set(1.5, 1.5);
     event.data.handle = event.target;
   }
-
-  /* -------------------------------------------- */
 
   /**
    * Handle mouse-out event on a control handle
@@ -875,8 +622,6 @@ export class Terrain extends PlaceableObject {
     }
   }
 
-  /* -------------------------------------------- */
-
   /**
    * When we start a drag event - create a preview copy of the Tile for re-positioning
    * @param {PIXI.interaction.InteractionEvent} event   The mousedown event
@@ -888,8 +633,6 @@ export class Terrain extends PlaceableObject {
       this._original = this.document.toObject();
     }
   }
-
-  /* -------------------------------------------- */
 
   /**
    * Handle the beginning of a drag event on a resize handle
@@ -908,8 +651,6 @@ export class Terrain extends PlaceableObject {
         */
     event.data.origin = {x: this.bounds.right, y: this.bounds.bottom};
   }
-
-  /* -------------------------------------------- */
 
   /**
    * Handle mousemove while dragging a tile scale handler
@@ -931,8 +672,6 @@ export class Terrain extends PlaceableObject {
       this.refresh();
     } catch (err) {}
   }
-
-  /* -------------------------------------------- */
 
   /**
    * Handle mouseup after dragging a tile scale handler
@@ -959,8 +698,6 @@ export class Terrain extends PlaceableObject {
     //return this.document.update(this.document.data, { diff: false });
   }
 
-  /* -------------------------------------------- */
-
   /**
    * Handle cancellation of a drag event for one of the resizing handles
    * @private
@@ -973,8 +710,6 @@ export class Terrain extends PlaceableObject {
     delete this._original;
     this.refresh();
   }
-
-  /* -------------------------------------------- */
 
   /**
    * Apply a vectorized rescaling transformation for the terrain data
@@ -1002,8 +737,6 @@ export class Terrain extends PlaceableObject {
       shape: {width: Math.roundFast(width), height: Math.roundFast(height), points}
     });
   }
-
-  /* -------------------------------------------- */
 
   /**
    * Adjust the location, dimensions, and points of the Terrain before committing the change

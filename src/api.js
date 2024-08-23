@@ -103,7 +103,7 @@ export function registerModule(moduleId, ruleProvider) {
 export function registerSystem(systemId, speedProvider) {
   const system = game.system;
   // If the current system id doesn't match the provided id something went wrong. Log a warning and ignore this module
-  if (system.id !== systemId) {
+  if (system.id != systemId) {
     console.warn(
       `Drag Ruler | A system tried to register with the id "${systemId}". However the active system has a different id.` +
         "This api registration call was ignored. " +

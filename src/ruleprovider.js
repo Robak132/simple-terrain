@@ -15,6 +15,7 @@ export class RuleProvider {
           calculateFn = function (cost, total) {
             return cost + total;
           };
+          break;
         case "multiple":
           calculateFn = function (cost, total) {
             return cost * (total ?? 1);

@@ -42,8 +42,7 @@
     }
   ],
   "esmodules": [
-    "terrain-main.js",
-    "js/settings.js"
+    "simple-terrain.js"
   ],
   "styles": [
     "css/terrainlayer.css"

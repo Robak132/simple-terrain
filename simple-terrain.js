@@ -1,11 +1,21 @@
 import {registerSettings} from "./src/settings.js";
-import {initApi, registerModule} from "./src/api.js";
+import {initApi, registerModule, registerSystem} from "./src/api.js";
 import {RuleProvider} from "./src/ruleprovider.js";
-import {addControlsv9, addTerrainConfig, log, registerKeybindings, setting, setupScene} from "./src/utility.js";
+import {addControlsv9, setting, setupScene} from "./src/utility.js";
+import {TerrainLayer} from "./src/terrainlayer.js";
 
-Hooks.on("canvasInit", () => {
-  canvas.terrain = new TerrainLayer();
-});
+function registerKeybindings() {
+  game.keybindings.register("simple-terrain", "toggle-view", {
+    name: "SimpleTerrain.ToggleView",
+    restricted: true,
+    editable: [{key: "KeyT", modifiers: [KeyboardManager.MODIFIER_KEYS?.ALT]}],
+    onDown: () => {
+      if (game.user.isGM) {
+        canvas.terrain.toggle(null, true);
+      }
+    }
+  });
+}
 
 Hooks.on("init", async () => {
   game.socket.on("module.simple-terrain", async (data) => {
@@ -14,8 +24,6 @@ Hooks.on("init", async () => {
 
   registerSettings();
   registerKeybindings();
-
-  window.enhancedTerrainLayer = {registerModule, registerSystem};
 
   let cp = CONFIG.MeasuredTemplate.objectClass.prototype._computeShape;
   CONFIG.MeasuredTemplate.objectClass.prototype._computeShape = function () {
@@ -45,54 +53,9 @@ Hooks.on("init", async () => {
 
   libWrapper.register("simple-terrain", "SceneControls.prototype._getControlButtons", getControlButtons, "WRAPPER");
 
-  let onDragLeftStart = async function (wrapped, ...args) {
-    wrapped(...args);
-    if (canvas !== null) {
-      canvas.terrain._tokenDrag = true;
-      log("drag start", canvas.terrain._tokenDrag);
-      canvas.terrain.refreshVisibility();
-
-      const isVisible =
-        canvas.terrain.showterrain || ui.controls.activeControl === "terrain" || canvas.terrain.showOnDrag;
-      canvas.terrain.visible = canvas.terrain.objects.visible = isVisible;
-    }
-  };
-
-  libWrapper.register("simple-terrain", "Token.prototype._onDragLeftStart", onDragLeftStart, "WRAPPER");
-
-  let onDragLeftDrop = async function (wrapped, ...args) {
-    wrapped(...args);
-    if (canvas !== null) {
-      canvas.terrain._tokenDrag = false;
-      log("left drop", canvas.terrain._tokenDrag);
-      canvas.terrain.refreshVisibility();
-
-      const isVisible =
-        canvas.terrain.showterrain || ui.controls.activeControl === "terrain" || canvas.terrain.showOnDrag;
-      canvas.terrain.visible = canvas.terrain.objects.visible = isVisible;
-    }
-  };
-
-  libWrapper.register("simple-terrain", "Token.prototype._onDragLeftDrop", onDragLeftDrop, "WRAPPER");
-
-  let onDragLeftCancel = async function (wrapped, ...args) {
-    const ruler = canvas.controls.ruler;
-    if (ruler._state !== Ruler.STATES.MEASURING) {
-      canvas.terrain._tokenDrag = false;
-      log("left cancel", canvas.terrain._tokenDrag);
-      canvas.terrain.refreshVisibility();
-
-      let isVisible = canvas.terrain.showterrain || ui.controls.activeControl === "terrain";
-      canvas.terrain.visible = canvas.terrain.objects.visible = isVisible;
-    }
-    wrapped(...args);
-  };
-
-  libWrapper.register("simple-terrain", "Token.prototype._onDragLeftCancel", onDragLeftCancel, "WRAPPER");
-
   initApi();
 
-  window.SimpleTerrain = {registerModule};
+  window.SimpleTerrain = {registerModule, registerSystem};
 });
 
 Hooks.on("ready", () => {
@@ -102,8 +65,6 @@ Hooks.on("ready", () => {
     canvas.terrain._setting["terrain-image"] = setting("terrain-image");
     canvas.terrain._setting["show-text"] = setting("show-text");
     canvas.terrain._setting["show-icon"] = setting("show-icon");
-    canvas.terrain._setting["show-on-drag"] = setting("show-on-drag");
-    canvas.terrain._setting["only-show-active"] = setting("only-show-active");
     canvas.terrain._setting["tokens-cause-difficult"] = setting("tokens-cause-difficult");
     canvas.terrain._setting["dead-cause-difficult"] = setting("dead-cause-difficult");
     canvas.terrain._setting["use-obstacles"] = setting("use-obstacles");
@@ -142,7 +103,9 @@ Hooks.on("renderMeasuredTemplateConfig", async (app, html) => {
           .append($("<a>").addClass("item").attr("data-tab", "terrain").html('<i class="fas fa-mountain"></i> Terrain'))
       );
   }
+
   await addControlsv9(app, tab);
+
   app.options.tabs = [
     {
       navSelector: ".tabs",
@@ -154,9 +117,11 @@ Hooks.on("renderMeasuredTemplateConfig", async (app, html) => {
   app._tabs = app._createTabHandlers();
   const el = html[0];
   app._tabs.forEach((t) => t.bind(el));
+
   window.setTimeout(() => {
     $(app.element).css({"min-height": ""});
   }, 500);
+
   app.setPosition();
 });
 
@@ -169,7 +134,7 @@ Hooks.on("renderDrawingConfig", async (app, html) => {
     .append($("<a>").addClass("item").attr("data-tab", "terrain").html('<i class="fas fa-mountain"></i> Terrain'));
   let tab = $("<div>").addClass("tab").attr("data-tab", "terrain").insertAfter($('div[data-tab="text"]', html));
 
-  await addTerrainConfig(app, html, tab);
+  await addControlsv9(app, tab);
 });
 
 Hooks.on("renderSceneConfig", async (app, html) => {
@@ -177,5 +142,9 @@ Hooks.on("renderSceneConfig", async (app, html) => {
     $("<a>").addClass("item").attr("data-tab", "terrain").html('<i class="fas fa-mountain"></i> Terrain')
   );
   let tab = $("<div>").addClass("tab").attr("data-tab", "terrain").insertAfter($('div[data-tab="ambience"]', html));
-  await addTerrainConfig(app, html, tab);
+  await addControlsv9(app, tab, {full: true});
+});
+
+Hooks.on("canvasInit", () => {
+  canvas.terrain = new TerrainLayer();
 });

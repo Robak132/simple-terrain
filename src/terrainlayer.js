@@ -6,31 +6,11 @@ import {PolygonTerrainInfo, TemplateTerrainInfo, TokenTerrainInfo} from "./terra
 import {setting} from "./utility.js";
 import {calculateCombinedCost} from "./api.js";
 
-export let environments = () => canvas.terrain.getEnvironments();
-
 export class TerrainLayer extends PlaceablesLayer {
   constructor() {
     super();
-    this._showterrain = game.settings.get("simple-terrain", "showterrain");
     this.defaultmultiple = 2;
-
     this._setting = {};
-  }
-
-  testTerrain() {
-    let gr = new PIXI.Graphics();
-    if (this.debugGr) canvas.tokens.removeChild(this.debugGr);
-    this.debugGr = gr;
-    canvas.tokens.addChild(gr);
-
-    for (let x = canvas.dimensions.sceneX; x < canvas.dimensions.sceneWidth + canvas.dimensions.sceneX; x += 10) {
-      for (let y = canvas.dimensions.sceneY; y < canvas.dimensions.sceneHeight + canvas.dimensions.sceneY; y += 10) {
-        let cost = this.cost({x: x, y: y}, {ignoreGrid: true});
-        gr.beginFill(cost === 1 ? 0x0000ff : 0xff0000)
-          .drawCircle(x, y, 4)
-          .endFill();
-      }
-    }
   }
 
   static documentName = "Terrain";
@@ -201,29 +181,6 @@ export class TerrainLayer extends PlaceablesLayer {
     newmult = Math.clamped(newmult, setting("minimum-cost"), setting("maximum-cost"));
 
     return newmult;
-  }
-
-  //Do not touch these as other modules rely on them
-  get showOnDrag() {
-    return setting("show-on-drag");
-  }
-
-  get showterrain() {
-    return this._showterrain;
-  }
-
-  set showterrain(value) {
-    this._showterrain = value;
-    canvas.terrain.visible = canvas.terrain.objects.visible =
-      this._showterrain || ui.controls.activeControl === "terrain";
-    this.refreshVisibility();
-    if (game.user.isGM) game.settings.set("simple-terrain", "showterrain", this._showterrain);
-  }
-
-  refreshVisibility() {
-    for (let t of canvas.terrain.placeables) {
-      t.visible = t.isVisible;
-    }
   }
 
   elevation(pts, options = {}) {
@@ -424,12 +381,6 @@ export class TerrainLayer extends PlaceablesLayer {
     return canvas.hud.terrain;
   }
 
-  configureDefault() {
-    //const defaults = game.settings.get("core", TerrainLayer.DEFAULT_CONFIG_SETTING);
-    //const d = TerrainDocument.fromSource(defaults);
-    //new TerrainConfig(d).render(true);
-  }
-
   async draw() {
     const d = canvas.dimensions;
     this.width = d.width;
@@ -462,13 +413,6 @@ export class TerrainLayer extends PlaceablesLayer {
     this.showterrain = show;
     if (game.user.isGM && emit)
       game.socket.emit("module.simple-terrain", {action: "toggle", arguments: [this._showterrain]});
-  }
-
-  _deactivate() {
-    super._deactivate();
-    this.visible = this._showterrain;
-    if (this.objects) this.objects.visible = this._showterrain;
-    this.refreshVisibility();
   }
 
   _getNewTerrainData(origin) {
@@ -514,14 +458,6 @@ export class TerrainLayer extends PlaceablesLayer {
     return TerrainDocument.cleanData(data);
   }
 
-  //get documentCollection() {
-  //    return canvas
-  //}
-
-  /* -------------------------------------------- */
-  /*  Event Listeners and Handlers                */
-  /* -------------------------------------------- */
-
   /** @override */
   _onClickLeft(event) {
     const {preview, createState, originalEvent} = event.data;
@@ -538,8 +474,6 @@ export class TerrainLayer extends PlaceablesLayer {
     // Standard left-click handling
     super._onClickLeft(event);
   }
-
-  /* -------------------------------------------- */
 
   /** @override */
   _onClickLeft2(event) {
@@ -585,8 +519,6 @@ export class TerrainLayer extends PlaceablesLayer {
     super._onClickLeft2(event);
   }
 
-  /* -------------------------------------------- */
-
   /** @override */
   async _onDragLeftStart(event) {
     await super._onDragLeftStart(event);
@@ -597,8 +529,6 @@ export class TerrainLayer extends PlaceablesLayer {
     event.data.preview = this.preview.addChild(terrain);
     return terrain.draw();
   }
-
-  /* -------------------------------------------- */
 
   /** @override */
   _onDragLeftMove(event) {
@@ -615,14 +545,12 @@ export class TerrainLayer extends PlaceablesLayer {
     }
   }
 
-  /* -------------------------------------------- */
-
   /**
    * Handling of mouse-up events which conclude a new object creation after dragging
    * @private
    */
   async _onDragLeftDrop(event) {
-    const {createState, destination, origin, originalEvent, preview} = event.data;
+    const {createState, preview} = event.data;
 
     // Successful drawing completion
     if (createState === 2) {
@@ -660,8 +588,6 @@ export class TerrainLayer extends PlaceablesLayer {
     return this._onDragLeftCancel(event);
   }
 
-  /* -------------------------------------------- */
-
   /** @override */
   _onDragLeftCancel(event) {
     const preview = this.preview.children?.[0] || null;
@@ -673,31 +599,12 @@ export class TerrainLayer extends PlaceablesLayer {
     super._onDragLeftCancel(event);
   }
 
-  /* -------------------------------------------- */
-
   /** @override */
   _onClickRight(event) {
     const preview = this.preview.children?.[0] || null;
     if (preview) return (canvas.mouseInteractionManager._dragRight = false);
     super._onClickRight(event);
   }
-  /*
-    _onDragSelect(event) {
-        // Extract event data
-        const { origin, destination } = event.data;
-
-        // Determine rectangle coordinates
-        let coords = {
-            x: Math.min(origin.x, destination.x),
-            y: Math.min(origin.y, destination.y),
-            width: Math.abs(destination.x - origin.x),
-            height: Math.abs(destination.y - origin.y)
-        };
-
-        // Draw the select rectangle
-        canvas.controls.drawSelect(coords);
-        event.data.coords = coords;
-    }*/
 
   async pasteObjects(position, {hidden = false, snap = true} = {}) {
     if (!this._copy.length) return [];
@@ -757,36 +664,6 @@ export class TerrainLayer extends PlaceablesLayer {
     return created;
   }
 
-  /*
-    selectObjects({ x, y, width, height, releaseOptions = {}, controlOptions = {} } = {}) {
-        const oldSet = Object.values(this._controlled);
-
-        let sPt = canvas.grid.grid.getGridPositionFromPixels(x, y);
-        let [y1, x1] = sPt;  //Normalize the returned data because it's in [y,x] format
-        let dPt = canvas.grid.grid.getGridPositionFromPixels(x + width, y + height);
-        let [y2, x2] = dPt;  //Normalize the returned data because it's in [y,x] format
-
-        // Identify controllable objects
-        const controllable = this.placeables.filter(obj => obj.visible && (obj.control instanceof Function));
-        const newSet = controllable.filter(obj => {
-            return !(obj.data.x < x1 || obj.data.x > x2 || obj.data.y < y1 || obj.data.y > y2);
-        });
-
-        // Release objects no longer controlled
-        const toRelease = oldSet.filter(obj => !newSet.includes(obj));
-        toRelease.forEach(obj => obj.release(releaseOptions));
-
-        // Control new objects
-        if (isEmpty(controlOptions)) controlOptions.releaseOthers = false;
-        const toControl = newSet.filter(obj => !oldSet.includes(obj));
-        toControl.forEach(obj => obj.control(controlOptions));
-
-        // Return a boolean for whether the control set was changed
-        const changed = (toRelease.length > 0) || (toControl.length > 0);
-        if (changed) canvas.initializeSources();
-        return changed;
-    }*/
-
   createTerrain(data) {
     //data = mergeObject(Terrain.defaults, data);
     const cls = getDocumentClass("Terrain");
@@ -804,8 +681,7 @@ export class TerrainLayer extends PlaceablesLayer {
         });*/
   }
 
-  //This is used for players, to add an remove on the fly
-  _createTerrain(data, options = {}) {
+  _createTerrain(data) {
     //let toCreate = data.map(d => new TerrainData(d));
     TerrainDocument.createDocuments(data, {parent: canvas.scene});
 
@@ -823,22 +699,20 @@ export class TerrainLayer extends PlaceablesLayer {
         canvas["#scene"].terrain.push(data);*/
   }
 
-  _updateTerrain(data, options = {}) {
+  _updateTerrain(data) {
     TerrainDocument.updateDocuments(data, {parent: canvas.scene});
   }
 
-  _deleteTerrain(ids, options = {}) {
+  _deleteTerrain(ids) {
     TerrainDocument.deleteDocuments(ids, {parent: canvas.scene});
   }
 
-  //refresh all the terrain on this layer
   refresh() {
     for (let terrain of this.placeables) {
       terrain.refresh();
     }
   }
 
-  //refresh all the terrain on this layer
   redraw() {
     for (let terrain of this.placeables) {
       terrain.draw();
