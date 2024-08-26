@@ -1,37 +1,42 @@
 <div class="form-group">
   <label for="flags.simple-terrain.multiple">{{localize "SimpleTerrain.Cost"}}</label>
-  <input type="text" name="flags.simple-terrain.multiple" data-dtype="Number" value="{{data.multiple}}"
-         placeholder="{{default.multiple}}">
+  <input type="text" name="flags.simple-terrain.multiple" data-dtype="Number" value="{{data.multiple}}" />
 </div>
 <div class="form-group">
   <label for="flags.simple-terrain.drawColor">{{localize "SimpleTerrain.TerrainColor"}}</label>
-  {{ colorPicker name="flags.simple-terrain.drawColor" value=data.drawColor}}
+  {{colorPicker name="flags.simple-terrain.drawColor" value=data.drawColor}}
 </div>
 <div class="form-group">
   <label for="flags.simple-terrain.elevation">{{localize "SimpleTerrain.TerrainElevation"}}</label>
-  <input type="number" name="flags.simple-terrain.elevation" step="any" data-dtype="Number" value="{{data.elevation}}"
-         placeholder="{{default.elevation}}">
+  <input
+    type="number"
+    name="flags.simple-terrain.elevation"
+    step="any"
+    data-dtype="Number"
+    value="{{data.elevation}}"
+  />
 </div>
 <div class="form-group">
   <label for="flags.simple-terrain.depth">{{localize "SimpleTerrain.TerrainDepth"}}</label>
-  <input type="number" name="flags.simple-terrain.depth" step="any" data-dtype="Number" value="{{data.depth}}"
-         placeholder="{{default.depth}}">
+  <input type="number" name="flags.simple-terrain.depth" step="any" data-dtype="Number" value="{{data.depth}}" />
 </div>
 <div class="form-group">
   <label for="flags.simple-terrain.environment">{{localize "SimpleTerrain.Environment"}}</label>
   <select name="flags.simple-terrain.environment" data-dtype="String">
     <option value=""></option>
-    <optgroup label="{{localize "SimpleTerrain.Environment"}}" data-type="environment">
-      {{ selectOptions environments selected=data.environment }}
+    <optgroup label="{{localize 'SimpleTerrain.Environment'}}" data-type="environment">
+      {{selectOptions environments selected=data.environment}}
     </optgroup>
-    <optgroup label="{{localize "SimpleTerrain.Obstacle"}}" data-type="obstacle">
-      {{ selectOptions obstacles selected=data.environment }}
+    <optgroup label="{{localize 'SimpleTerrain.Obstacle'}}" data-type="obstacle">
+      {{selectOptions obstacles selected=data.environment}}
     </optgroup>
   </select>
 </div>
+{{#if useObstacles}}
 <div class="form-group">
   <label for="flags.simple-terrain.obstacle">{{localize "SimpleTerrain.Obstacle"}}</label>
   <select name="flags.simple-terrain.obstacle" data-dtype="String">
-    {{ selectOptions obstacles selected=data.obstacle blank=' ' }}
+    {{selectOptions obstacles selected=data.obstacle blank=" "}}
   </select>
 </div>
+{{/if}}

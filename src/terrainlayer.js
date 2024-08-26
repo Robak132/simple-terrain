@@ -10,11 +10,6 @@ export class TerrainLayer extends PlaceablesLayer {
   //Compatibility
   refreshVisibility() {}
 
-  //Compatibility
-  get showOnDrag() {
-    return true;
-  }
-
   static get defaults() {
     const sceneFlags = canvas.scene.flags["simple-terrain"];
     let sceneMult = sceneFlags?.multiple;
@@ -165,7 +160,7 @@ export class TerrainLayer extends PlaceablesLayer {
       let [gx, gy] =
         canvas.grid.type === CONST.GRID_TYPES.GRIDLESS || options.ignoreGrid === true
           ? [pt.x, pt.y]
-          : canvas.grid.grid.getPixelsFromGridPosition(pt.y, pt.x);
+          : canvas.grid.grid.getPixelsFromGridPosition(pt.x, pt.y);
 
       let tx = gx + hx;
       let ty = gy + hy;
@@ -309,25 +304,20 @@ export class TerrainLayer extends PlaceablesLayer {
       }
     }
 
-    let {x, y, shape} = document;
-    let result;
+    let {shape} = document;
     switch (shape.type) {
       case Drawing.SHAPE_TYPES.RECTANGLE:
-        result = new PIXI.Rectangle(0, 0, shape.width, shape.height);
-        break;
+        return new PIXI.Rectangle(0, 0, shape.width, shape.height);
       case Drawing.SHAPE_TYPES.ELLIPSE:
-        result = new PIXI.Ellipse(
+        return new PIXI.Ellipse(
           shape.width / 2,
           shape.height / 2,
           Math.max(Math.abs(shape.width / 2), 0),
           Math.max(Math.abs(shape.height / 2), 0)
         );
-        break;
       case Drawing.SHAPE_TYPES.POLYGON:
-        result = new PIXI.Polygon(shape.points);
-        break;
+        return new PIXI.Polygon(shape.points);
     }
-    return result;
   }
 
   costWithTerrain(pts, terrain, options = {}) {
@@ -344,7 +334,7 @@ export class TerrainLayer extends PlaceablesLayer {
       const [gx, gy] =
         canvas.grid.type === CONST.GRID_TYPES.GRIDLESS || options.ignoreGrid === true
           ? [pt.x, pt.y]
-          : canvas.grid.grid.getPixelsFromGridPosition(pt.y, pt.x);
+          : canvas.grid.grid.getPixelsFromGridPosition(pt.x, pt.y);
 
       const tx = gx + hx;
       const ty = gy + hy;
@@ -369,7 +359,7 @@ export class TerrainLayer extends PlaceablesLayer {
   }
 
   terrainFromGrid(x, y, options = {}) {
-    let [gx, gy] = canvas.grid.grid.getPixelsFromGridPosition(y, x);
+    let [gx, gy] = canvas.grid.grid.getPixelsFromGridPosition(x, y);
     return this.terrainFromPixels(gx, gy, options);
   }
 

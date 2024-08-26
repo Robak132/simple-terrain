@@ -41,12 +41,8 @@
       "path": "lang/zh-tw.json"
     }
   ],
-  "esmodules": [
-    "simple-terrain.js"
-  ],
-  "styles": [
-    "css/terrainlayer.css"
-  ],
+  "esmodules": ["simple-terrain.js"],
+  "styles": ["css/terrainlayer.css"],
   "relationships": {
     "requires": [
       {
